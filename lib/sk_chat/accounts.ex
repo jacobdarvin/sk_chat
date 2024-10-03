@@ -10,9 +10,11 @@ defmodule SkChat.Accounts do
 
   def create_user(attrs \\ %{}) do
     %User{}
-    |> User.registration_changeset(attrs)
+    |> User.changeset(attrs)
     |> Repo.insert()
   end
+
+  def get_user!(id), do: Repo.get!(User, id)
 
   def get_user_by_username(username) do
     Repo.get_by(User, username: username)

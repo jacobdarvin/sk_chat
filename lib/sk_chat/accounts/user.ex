@@ -13,7 +13,7 @@ defmodule SkChat.Accounts.User do
   end
 
   @doc false
-  def registration_changeset(user, attrs) do
+  def changeset(user, attrs) do
     user
     |> cast(attrs, [:username, :email, :hashed_password])
     |> validate_required([:username, :email, :password])
