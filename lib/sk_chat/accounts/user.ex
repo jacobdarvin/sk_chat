@@ -15,7 +15,7 @@ defmodule SkChat.Accounts.User do
   @doc false
   def changeset(user, attrs) do
     user
-    |> cast(attrs, [:username, :email, :hashed_password])
+    |> cast(attrs, [:username, :email, :password])
     |> validate_required([:username, :email, :password])
     |> validate_length(:password, min: 6)
     |> unique_constraint(:email)
