@@ -31,6 +31,11 @@ config :sk_chat, SkChatWeb.Endpoint,
 # at the `config/runtime.exs`.
 config :sk_chat, SkChat.Mailer, adapter: Swoosh.Adapters.Local
 
+# Configures Guardian
+config :sk_chat, SkChat.Guardian,
+  issuer: "sk_chat",
+  secret_key: "iY1WOYT0ZoKzmPHRrtUwgjwE9m8kBKgQynnTEa+nHn+W9aByCo4bZpfgsaROZ4L+"
+
 # Configures Elixir's Logger
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",

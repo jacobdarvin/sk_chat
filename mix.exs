@@ -46,7 +46,8 @@ defmodule SkChat.MixProject do
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
       {:phoenix_pubsub, "~> 2.1"},
-      {:bcrypt_elixir, "~> 3.1"}
+      {:bcrypt_elixir, "~> 3.1"},
+      {:guardian, "~> 2.3"}
     ]
   end
 
