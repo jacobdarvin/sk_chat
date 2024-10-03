@@ -26,10 +26,7 @@ defmodule SkChat.Accounts.User do
   defp hash_password(changeset) do
     if password = get_change(changeset, :password) do
       hashed_password = Bcrypt.hash_pwd_salt(password)
-
-      changeset
-      |> put_change(:hashed_password, hashed_password)
-      |> delete_change(:password)
+      put_change(changeset, :hashed_password, hashed_password)
     else
       changeset
     end
