@@ -5,7 +5,7 @@ defmodule SkChatWeb.SessionController do
 
   action_fallback SkChatWeb.FallbackController
 
-  def create(conn, %{"username" => username, "password" => password}) do
+  def create(conn, %{"user" => %{"username" => username, "password" => password}}) do
     case Accounts.authenticate_user(username, password) do
       {:ok, user} ->
         # Generate JWT token
