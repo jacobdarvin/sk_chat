@@ -10,6 +10,7 @@ defmodule SkChatWeb.Router do
 
     post "/login", SessionController, :create
     post "/register", RegistrationController, :create
+    get "/messages", MessageController, :index
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
