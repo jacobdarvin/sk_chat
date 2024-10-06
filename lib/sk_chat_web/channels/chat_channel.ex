@@ -49,17 +49,25 @@ defmodule SkChatWeb.ChatChannel do
     sender = socket.assigns.current_user
     receiver_id = String.to_integer(receiver_id_str)
 
-    case Chat.create_message(%{
-           content: content,
-           sender_id: sender.id,
-           receiver_id: receiver_id
-         }) do
+    message_attrs = %{
+      content: content,
+      sender_id: sender.id,
+      receiver_id: receiver_id,
+      timestamp: DateTime.utc_now()
+    }
+
+    # Log the message attributes
+    IO.puts("Attempting to create message with attrs: #{inspect(message_attrs)}")
+
+    case Chat.create_message(message_attrs) do
       {:ok, message} ->
+        IO.puts("Message created successfully: #{inspect(message)}")
         broadcast_to_users(message)
         {:noreply, socket}
 
       {:error, changeset} ->
         errors = format_changeset_errors(changeset)
+        IO.puts("Failed to create message: #{inspect(errors)}")
         {:reply, {:error, %{errors: errors}}, socket}
     end
   end
