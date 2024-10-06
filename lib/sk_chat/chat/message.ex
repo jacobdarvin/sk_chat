@@ -3,12 +3,12 @@ defmodule SkChat.Chat.Message do
   import Ecto.Changeset
 
   schema "messages" do
-    field :timestamp, :utc_datetime_usec
     field :content, :string
-    field :sender_id, :id
-    field :receiver_id, :id
+    field :sender_id, :integer
+    field :receiver_id, :integer
+    field :timestamp, :naive_datetime
 
-    timestamps(type: :utc_datetime)
+    timestamps()
   end
 
   @doc false

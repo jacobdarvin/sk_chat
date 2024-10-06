@@ -5,58 +5,90 @@ defmodule SkChatWeb.ChatChannel do
   alias SkChat.Chat
   alias SkChatWeb.Presence
 
-  def join("chat:" <> chat_id, _params, socket) do
-    send(self(), :after_join)
-    {:ok, assign(socket, :chat_id, chat_id)}
+  # Handle joining the lobby channel for presence tracking
+  def join("chat:lobby", _params, socket) do
+    send(self(), :after_join_lobby)
+    {:ok, socket}
   end
 
-  def handle_info(:after_join, socket) do
+  # Handle joining user-specific channels
+  def join("chat:user:" <> user_id_str, _params, socket) do
+    user_id = String.to_integer(user_id_str)
+
+    if user_id == socket.assigns.current_user.id do
+      send(self(), :after_join_user)
+      {:ok, assign(socket, :user_id, user_id)}
+    else
+      {:error, %{reason: "unauthorized"}}
+    end
+  end
+
+  # Handle presence tracking in the lobby
+  def handle_info(:after_join_lobby, socket) do
     user = socket.assigns.current_user
 
-    Presence.track(socket, user.id, %{
-      username: user.username,
-      online_at: DateTime.utc_now() |> DateTime.to_unix()
-    })
+    {:ok, _} =
+      Presence.track(socket, user.id, %{
+        username: user.username,
+        email: user.email,
+        online_at: DateTime.utc_now() |> DateTime.to_unix()
+      })
 
     push(socket, "presence_state", Presence.list(socket))
     {:noreply, socket}
   end
 
-  def handle_in("message:new", %{"content" => content}, socket) do
+  # Handle any necessary actions after joining the user-specific channel
+  def handle_info(:after_join_user, socket) do
+    # Any additional setup after joining user-specific channel
+    {:noreply, socket}
+  end
+
+  # Handle incoming messages in user-specific channels
+  def handle_in("message:new", %{"content" => content, "receiver_id" => receiver_id_str}, socket) do
     sender = socket.assigns.current_user
-    chat_id = socket.assigns.chat_id
+    receiver_id = String.to_integer(receiver_id_str)
 
-    # Determine if it's a global chat
-    {_receiver_id, message_attrs} =
-      if chat_id == "0" do
-        {nil, %{content: content, sender_id: sender.id}}
-      else
-        receiver_id = String.to_integer(chat_id)
-
-        {
-          receiver_id,
-          %{
-            content: content,
-            sender_id: sender.id,
-            receiver_id: receiver_id
-          }
-        }
-      end
-
-    case Chat.create_message(message_attrs) do
+    case Chat.create_message(%{
+           content: content,
+           sender_id: sender.id,
+           receiver_id: receiver_id
+         }) do
       {:ok, message} ->
-        broadcast!(socket, "message:new", %{
-          id: message.id,
-          content: message.content,
-          timestamp: message.inserted_at,
-          sender_id: message.sender_id,
-          receiver_id: message.receiver_id
-        })
-
+        broadcast_to_users(message)
         {:noreply, socket}
 
       {:error, changeset} ->
-        {:reply, {:error, %{errors: changeset}}, socket}
+        errors = format_changeset_errors(changeset)
+        {:reply, {:error, %{errors: errors}}, socket}
     end
+  end
+
+  defp broadcast_to_users(message) do
+    SkChatWeb.Endpoint.broadcast!(
+      "chat:user:#{message.sender_id}",
+      "message:new",
+      message_payload(message)
+    )
+
+    SkChatWeb.Endpoint.broadcast!(
+      "chat:user:#{message.receiver_id}",
+      "message:new",
+      message_payload(message)
+    )
+  end
+
+  defp message_payload(message) do
+    %{
+      id: message.id,
+      content: message.content,
+      timestamp: message.inserted_at,
+      sender_id: message.sender_id,
+      receiver_id: message.receiver_id
+    }
+  end
+
+  defp format_changeset_errors(changeset) do
+    Ecto.Changeset.traverse_errors(changeset, fn {msg, _opts} -> msg end)
   end
 end
