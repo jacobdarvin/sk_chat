@@ -5,11 +5,20 @@ defmodule SkChatWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :api_auth do
+    plug SkChatWeb.AuthPipeline
+  end
+
   scope "/api", SkChatWeb do
     pipe_through :api
 
     post "/login", SessionController, :create
     post "/register", RegistrationController, :create
+  end
+
+  scope "/api", SkChatWeb do
+    pipe_through [:api, :api_auth]
+
     get "/messages", MessageController, :index
   end
 

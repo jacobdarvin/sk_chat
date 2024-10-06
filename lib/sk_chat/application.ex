@@ -17,7 +17,8 @@ defmodule SkChat.Application do
       # Start a worker by calling: SkChat.Worker.start_link(arg)
       # {SkChat.Worker, arg},
       # Start to serve requests, typically the last entry
-      SkChatWeb.Endpoint
+      SkChatWeb.Endpoint,
+      SkChatWeb.Presence
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
